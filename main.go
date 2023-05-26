@@ -19,6 +19,7 @@ type Thread struct {
 		Ext         string `json:"ext"`
 		Tim         int64  `json:"tim"`
 		SemanticURL string `json:"semantic_url"`
+		Images      int    `json:"images"`
 	} `json:"posts"`
 }
 
@@ -77,12 +78,17 @@ func main() {
 	log.Printf("Starting on board: '%s', thread: '%s' with '%d' workers.", boardName, threadNo, workerCount)
 	fmt.Printf("Starting on board: '%s', thread: '%s' with '%d' workers.\n", boardName, threadNo, workerCount)
 
-	getFiles(inputURL, boardName, workerCount)
+	getFiles(inputURL, boardName, threadNo, workerCount)
 }
 
-func getFiles(URL string, board string, workerCount int) {
+var (
+	count      int = 0
+	totalCount int
+)
+
+func getFiles(URL, board, thread string, workerCount int) {
 	const downloadsDir string = "downloads"
-	var threadEndpoint string = URL + ".json"
+	var threadEndpoint string = "https://a.4cdn.org/" + board + "/thread/" + thread + ".json"
 	var workers chan struct{} = make(chan struct{}, workerCount)
 	var wg sync.WaitGroup
 
@@ -103,6 +109,7 @@ func getFiles(URL string, board string, workerCount int) {
 	}
 
 	var threadName string = threadData.Posts[0].SemanticURL
+	totalCount = threadData.Posts[0].Images
 
 	var storeDownloads string = fmt.Sprintf("%s/%s/%s", downloadsDir, board, threadName)
 	err = os.MkdirAll(storeDownloads, 0755)
@@ -131,7 +138,8 @@ func getFiles(URL string, board string, workerCount int) {
 		log.Printf("[%d] Saved file %s%s", i, post.Filename, post.Ext)
 	}
 	wg.Wait()
-	log.Print("Finished.")
+	log.Println("Finished.")
+	fmt.Println("\nFinished.")
 }
 
 func Download(fileEndpoint string, filePath string, wg *sync.WaitGroup, workers chan struct{}) {
@@ -139,6 +147,8 @@ func Download(fileEndpoint string, filePath string, wg *sync.WaitGroup, workers 
 	defer func() {
 		<-workers
 		wg.Done()
+		fmt.Printf("\rDownloaded: %d / %d", count, totalCount)
+		count++
 	}()
 
 	out, err := os.Create(filePath)
