@@ -23,6 +23,15 @@ type Thread struct {
 	} `json:"posts"`
 }
 
+var (
+	inputURL    string
+	workerCount int
+	boardName   string
+	threadNo    string
+	count       int = 0
+	totalCount  int
+)
+
 func SetupLogging() {
 	const logDirName string = "logs"
 	var logFileName string = time.Now().Format("2006-01-02_15.04.05")
@@ -51,10 +60,8 @@ func DegenCheck(boardName string) {
 }
 
 func main() {
-	var (
-		inputURL    string
-		workerCount int
-	)
+	SetupLogging()
+
 	flag.StringVar(&inputURL, "u", "", "URL of the thread to download from.")
 	flag.IntVar(&workerCount, "t", 1, "Number of CPU workers to use when concurrently downloading.")
 	flag.Parse()
@@ -69,26 +76,19 @@ func main() {
 	}
 
 	var splitInput []string = strings.Split(inputURL, "/")
-	var boardName string = splitInput[3]
-	DegenCheck(boardName)
-	var threadNo string = splitInput[5]
-
-	SetupLogging()
+	boardName = splitInput[3]
+	// DegenCheck(boardName)
+	threadNo = splitInput[5]
 
 	log.Printf("Starting on board: '%s', thread: '%s' with '%d' workers.", boardName, threadNo, workerCount)
 	fmt.Printf("Starting on board: '%s', thread: '%s' with '%d' workers.\n", boardName, threadNo, workerCount)
 
-	getFiles(inputURL, boardName, threadNo, workerCount)
+	getFiles(workerCount)
 }
 
-var (
-	count      int = 0
-	totalCount int
-)
-
-func getFiles(URL, board, thread string, workerCount int) {
+func getFiles(workerCount int) {
 	const downloadsDir string = "downloads"
-	var threadEndpoint string = "https://a.4cdn.org/" + board + "/thread/" + thread + ".json"
+	var threadEndpoint string = "https://a.4cdn.org/" + boardName + "/thread/" + threadNo + ".json"
 	var workers chan struct{} = make(chan struct{}, workerCount)
 	var wg sync.WaitGroup
 
@@ -111,17 +111,20 @@ func getFiles(URL, board, thread string, workerCount int) {
 	var threadName string = threadData.Posts[0].SemanticURL
 	totalCount = threadData.Posts[0].Images
 
-	var storeDownloads string = fmt.Sprintf("%s/%s/%s", downloadsDir, board, threadName)
-	err = os.MkdirAll(storeDownloads, 0755)
-	if err != nil {
-		log.Fatalln("Error creating downloads directory. Error:", err)
+	var storeDownloads string = fmt.Sprintf("./%s/%s/%s", downloadsDir, boardName, threadName)
+	_, err = os.Stat(storeDownloads)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(storeDownloads, 0755)
+		if err != nil {
+			log.Fatalln("Error creating downloads directory. Error:", err)
+		}
 	}
-	log.Printf("Downloads directory path: %s\n", storeDownloads)
-	fmt.Printf("Downloads directory path: %s\n", storeDownloads)
+	log.Printf("Downloads path: %s\n", storeDownloads)
+	fmt.Printf("Downloads path: %s\n", storeDownloads)
 
-	err = os.WriteFile(fmt.Sprintf("%s/link.txt", storeDownloads), []byte(URL), 0644)
+	err = os.WriteFile(fmt.Sprintf("%s/link.txt", storeDownloads), []byte(inputURL), 0644)
 	if err != nil {
-		log.Println("Error creating text file to write input URL into. Input URL for refrence:", URL)
+		log.Println("Error creating text file to write input URL into. Input URL for refrence:", inputURL)
 	}
 
 	for i, post := range threadData.Posts {
@@ -130,7 +133,7 @@ func getFiles(URL, board, thread string, workerCount int) {
 			continue
 		}
 
-		var fileEndpoint string = fmt.Sprintf("https://i.4cdn.org/%s/%d%s", board, post.Tim, post.Ext)
+		var fileEndpoint string = fmt.Sprintf("https://i.4cdn.org/%s/%d%s", boardName, post.Tim, post.Ext)
 		var filePath string = fmt.Sprintf("%s/%d%s", storeDownloads, post.Tim, post.Ext)
 
 		wg.Add(1)
