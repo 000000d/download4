@@ -117,6 +117,7 @@ func getFiles(URL, board, thread string, workerCount int) {
 		log.Fatalln("Error creating downloads directory. Error:", err)
 	}
 	log.Printf("Downloads directory path: %s\n", storeDownloads)
+	fmt.Printf("Downloads directory path: %s\n", storeDownloads)
 
 	err = os.WriteFile(fmt.Sprintf("%s/link.txt", storeDownloads), []byte(URL), 0644)
 	if err != nil {
@@ -125,7 +126,7 @@ func getFiles(URL, board, thread string, workerCount int) {
 
 	for i, post := range threadData.Posts {
 		if post.Ext == "" {
-			log.Printf("Skipping: [%d]; not a file.", i)
+			log.Printf("Skipping: [%d] is not a file.", i)
 			continue
 		}
 
