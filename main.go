@@ -136,6 +136,12 @@ func getFiles(workerCount int) {
 		var fileEndpoint string = fmt.Sprintf("https://i.4cdn.org/%s/%d%s", boardName, post.Tim, post.Ext)
 		var filePath string = fmt.Sprintf("%s/%d%s", storeDownloads, post.Tim, post.Ext)
 
+		_, err := os.Stat(filePath)
+		if !os.IsNotExist(err) {
+			log.Printf("Skipping: [%d] already downloaded.", i)
+			continue
+		}
+
 		wg.Add(1)
 		go Download(fileEndpoint, filePath, &wg, workers)
 
