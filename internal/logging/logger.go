@@ -16,15 +16,8 @@ var (
 	logFileName string = time.Now().Format("2006-01-02_15.04.05")
 )
 
-func Enable() {
-	const logDirName string = "logs"
-
-	err := os.MkdirAll(logDirName, 0755)
-	if err != nil {
-		log.Fatalln("Error creating log directory:", err)
-	}
-
-	logFile, err := os.Create(fmt.Sprintf("./%s/%s.log", logDirName, logFileName))
+func Enable(logPath string) {
+	logFile, err := os.Create(fmt.Sprintf("%s/%s.log", logPath, logFileName))
 	if err != nil {
 		log.Fatalln("Error creating log file:", err)
 	}

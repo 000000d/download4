@@ -3,6 +3,7 @@ package data
 import (
 	"four-download/internal/download"
 	"four-download/internal/logging"
+	"four-download/internal/setup"
 
 	"encoding/json"
 	"fmt"
@@ -22,8 +23,7 @@ type Thread struct {
 	} `json:"posts"`
 }
 
-func GetData(workerCount int, boardName, threadNo, inputURL string) {
-	const downloadsDir string = "downloads"
+func GetData(workerCount int, boardName, threadNo, inputURL string, cfg setup.Config) {
 	var threadEndpoint string = "https://a.4cdn.org/" + boardName + "/thread/" + threadNo + ".json"
 	var workers chan struct{} = make(chan struct{}, workerCount)
 	var wg sync.WaitGroup
@@ -47,7 +47,7 @@ func GetData(workerCount int, boardName, threadNo, inputURL string) {
 	var threadName string = threadData.Posts[0].SemanticURL
 	var totalCount = threadData.Posts[0].Images
 
-	var storeDownloads string = fmt.Sprintf("./%s/%s/%s", downloadsDir, boardName, threadName)
+	var storeDownloads string = fmt.Sprintf("%s/%s/%s", cfg.DownloadPath, boardName, threadName)
 	_, err = os.Stat(storeDownloads)
 	if os.IsNotExist(err) {
 		err = os.MkdirAll(storeDownloads, 0755)
