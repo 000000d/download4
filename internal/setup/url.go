@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func TestURL(inputURL string) (string, string) {
+func PingURL(inputURL string) (string, string) {
 	if inputURL == "" {
 		logging.ErrorLogger.Fatalln("Input an URL to download from.")
 	}
