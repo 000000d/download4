@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func PingURL(inputURL string) (string, string) {
+func PingURL(inputURL string, d bool) (string, string) {
 	if inputURL == "" {
 		logging.ErrorLogger.Fatalln("Input an URL to download from.")
 	}
@@ -18,13 +18,15 @@ func PingURL(inputURL string) (string, string) {
 		logging.ErrorLogger.Fatalln("Invalid input URL or IP banned. Request status:", request.Status)
 	}
 
-	return splitURL(inputURL)
+	return splitURL(inputURL, d)
 }
 
-func splitURL(inputURL string) (string, string) {
+func splitURL(inputURL string, d bool) (string, string) {
 	var res []string = strings.Split(inputURL, "/")
 
-	degenerate.DegenCheck(res[3])
+	if !d {
+		degenerate.DegenCheck(res[3])
+	}
 
 	return res[3], res[5]
 }
