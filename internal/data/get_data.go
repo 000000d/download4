@@ -1,16 +1,16 @@
 package data
 
 import (
-	"four-download/internal/download"
-	"four-download/internal/logging"
-	"four-download/internal/setup"
-
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"sync"
+
+	"four-download/internal/default_client"
+	"four-download/internal/download"
+	"four-download/internal/logging"
+	"four-download/internal/setup"
 )
 
 type Thread struct {
@@ -23,15 +23,14 @@ type Thread struct {
 	} `json:"posts"`
 }
 
-func GetData(workerCount int, boardName, threadNo, inputURL string, cfg setup.Config) {
+func GetData(waitTime float64, boardName, threadNo, inputURL string, cfg setup.Config) {
 	var threadEndpoint string = "https://a.4cdn.org/" + boardName + "/thread/" + threadNo + ".json"
-	var workers chan struct{} = make(chan struct{}, workerCount)
-	var wg sync.WaitGroup
 
-	request, err := http.Get(threadEndpoint)
+	request, err := default_client.HttpDefaultClientDo(http.MethodGet, threadEndpoint)
 	if err != nil {
 		logging.ErrorLogger.Fatalln("Failed to query URL. Request status:", request.Status)
 	}
+	defer request.Body.Close()
 
 	requestBody, err := io.ReadAll(request.Body)
 	if err != nil {
@@ -45,7 +44,7 @@ func GetData(workerCount int, boardName, threadNo, inputURL string, cfg setup.Co
 	}
 
 	var threadName string = threadData.Posts[0].SemanticURL
-	var totalCount = threadData.Posts[0].Images
+	var totalCount int = threadData.Posts[0].Images
 
 	var storeDownloads string = fmt.Sprintf("%s/%s/%s", cfg.DownloadPath, boardName, threadName)
 	_, err = os.Stat(storeDownloads)
@@ -65,7 +64,7 @@ func GetData(workerCount int, boardName, threadNo, inputURL string, cfg setup.Co
 
 	for i, post := range threadData.Posts {
 		if post.Ext == "" {
-			logging.InfoLogger.Printf("Skipping: [%d] is not a file.", i)
+			logging.InfoLogger.Printf("Skipping: [%d] is not a file.\n", i)
 			continue
 		}
 
@@ -74,16 +73,14 @@ func GetData(workerCount int, boardName, threadNo, inputURL string, cfg setup.Co
 
 		_, err := os.Stat(filePath)
 		if !os.IsNotExist(err) {
-			logging.InfoLogger.Printf("Skipping: [%d] already downloaded.", i)
+			logging.InfoLogger.Printf("Skipping: [%d] already downloaded.\n", i)
 			continue
 		}
 
-		wg.Add(1)
-		go download.DownloadFile(fileEndpoint, filePath, totalCount, &wg, workers)
+		download.DownloadFile(fileEndpoint, filePath, totalCount, waitTime)
 
-		logging.InfoLogger.Printf("[%d] Saved file %s%s", i, post.Filename, post.Ext)
+		logging.InfoLogger.Printf("[%d] Saved file %s%s\n", i, post.Filename, post.Ext)
 	}
-	wg.Wait()
-	logging.InfoLogger.Printf("Finished.")
+	logging.InfoLogger.Printf("Finished.\n")
 	fmt.Println("\nFinished.")
 }

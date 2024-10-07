@@ -1,22 +1,24 @@
 package setup
 
 import (
-	"four-download/internal/degenerate"
-	"four-download/internal/logging"
-
 	"net/http"
 	"strings"
+
+	"four-download/internal/default_client"
+	"four-download/internal/degenerate"
+	"four-download/internal/logging"
 )
 
 func PingURL(inputURL string, d bool) (string, string) {
 	if inputURL == "" {
-		logging.ErrorLogger.Fatalln("Input an URL to download from.")
+		logging.ErrorLogger.Fatalf("Input an URL to download from.\n")
 	}
 
-	request, err := http.Get(inputURL)
+	request, err := default_client.HttpDefaultClientDo(http.MethodGet, inputURL)
 	if err != nil || request.StatusCode != http.StatusOK {
-		logging.ErrorLogger.Fatalln("Invalid input URL or IP banned. Request status:", request.Status)
+		logging.ErrorLogger.Fatalf("Invalid input URL or IP banned. Request status: %s. ERROR: %v\n", request.Status, err)
 	}
+	defer request.Body.Close()
 
 	return splitURL(inputURL, d)
 }
