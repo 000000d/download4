@@ -5,11 +5,10 @@ import (
 	"strings"
 
 	"four-download/internal/default_client"
-	"four-download/internal/degenerate"
 	"four-download/internal/logging"
 )
 
-func PingURL(inputURL string, d bool) (string, string) {
+func PingURL(inputURL string) (string, string) {
 	if inputURL == "" {
 		logging.ErrorLogger.Fatalf("Input an URL to download from.\n")
 	}
@@ -20,15 +19,10 @@ func PingURL(inputURL string, d bool) (string, string) {
 	}
 	defer request.Body.Close()
 
-	return splitURL(inputURL, d)
+	return splitURL(inputURL)
 }
 
-func splitURL(inputURL string, d bool) (string, string) {
+func splitURL(inputURL string) (string, string) {
 	var res []string = strings.Split(inputURL, "/")
-
-	if !d {
-		degenerate.DegenCheck(res[3])
-	}
-
 	return res[3], res[5]
 }

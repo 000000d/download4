@@ -12,7 +12,6 @@ import (
 type FlagValues struct {
 	inputURL string
 	waitTime float64
-	d        bool
 }
 
 var flagValues FlagValues
@@ -23,10 +22,9 @@ func main() {
 
 	flag.StringVar(&flagValues.inputURL, "u", "", "URL of the thread to download from")
 	flag.Float64Var(&flagValues.waitTime, "t", 1, "Number of seconds to wait inbetween requests")
-	flag.BoolVar(&flagValues.d, "d", false, "'d'")
 	flag.Parse()
 
-	boardName, threadNo := setup.PingURL(flagValues.inputURL, flagValues.d)
+	boardName, threadNo := setup.PingURL(flagValues.inputURL)
 
 	logging.InfoLogger.Printf("Starting on board: '%s', thread: '%s' with '%f' second interval.\n", boardName, threadNo, flagValues.waitTime)
 	fmt.Printf("Starting on board: '%s', thread: '%s' with '%f' second interval.\n", boardName, threadNo, flagValues.waitTime)
