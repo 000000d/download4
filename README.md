@@ -1,20 +1,26 @@
 # download4
 
+A downloader for a website which has neglected to upgrade its PHP since 2016.
+
 ### Usage:
 
-    $ ./four-download -u <url>
+```console
+$ four-download -u <url>
+```
 
 url: URL of the thread to download from.
 
-*To download quicker:*
+*To download slower:*
 
-    $ ./four-download -u <url> -t <worker_count>
+```console
+$ four-download -u <url> -t <wait_time>
+```
 
-worker_count: Number of threads to use when concurrently downloading. Default is 1.
+wait_time: Number of seconds to wait in-between requests. Default is 1.
 
 ### Sample `config.json` file:
 
-```
+```json
 {
     "log_path": "./path/to/log/dir/",
     "download_path": "./path/to/downloads/dir/"
