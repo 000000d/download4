@@ -21,7 +21,7 @@ func main() {
 	logging.Enable(cfg.LogPath)
 
 	flag.StringVar(&flagValues.inputURL, "u", "", "URL of the thread to download from")
-	flag.Float64Var(&flagValues.waitTime, "t", 1, "Number of seconds to wait inbetween requests")
+	flag.Float64Var(&flagValues.waitTime, "t", 1, "Number of seconds to wait in-between requests")
 	flag.Parse()
 
 	boardName, threadNo := setup.PingURL(flagValues.inputURL)
