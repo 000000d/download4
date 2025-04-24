@@ -2,6 +2,11 @@
 
 A downloader for a website which has neglected to upgrade its PHP since 2016.
 
+> [!WARNING]
+> Besides the small update in 2024, this software has not been maintained since 2023.
+>
+> Due to external circumstances, this software will not be maintained at all anymore.
+
 ### Usage:
 
 ```console
